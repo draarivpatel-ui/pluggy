@@ -813,6 +813,39 @@ def test_subset_hook_caller_with_specname(pm: PluginManager) -> None:
     assert hc() == [2]
 
 
+def test_subset_hook_caller_excludes_late_registration(pm: PluginManager) -> None:
+    """A plugin passed before registration stays excluded from the proxy (#840)."""
+
+    class Hooks:
+        @hookspec
+        def he_method1(self, arg):
+            pass
+
+    class Plugin1:
+        @hookimpl
+        def he_method1(self, arg):
+            return arg
+
+    class Plugin2:
+        @hookimpl
+        def he_method1(self, arg):
+            return arg * 10
+
+    class PluginNo:
+        pass
+
+    pm.add_hookspecs(Hooks)
+    plugin1, plugin2, plugin_no = Plugin1(), Plugin2(), PluginNo()
+    pm.register(plugin2)
+
+    hc = pm.subset_hook_caller("he_method1", [plugin1, plugin_no])
+    assert hc(arg=1) == [10]
+
+    pm.register(plugin1)
+    assert hc(arg=1) == [10]
+    assert pm.hook.he_method1(arg=1) == [1, 10]
+
+
 def test_get_hookimpls(pm: PluginManager) -> None:
     class Hooks:
         @hookspec

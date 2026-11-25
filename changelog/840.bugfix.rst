@@ -1,0 +1,1 @@
+Fix :meth:`pluggy.PluginManager.subset_hook_caller` so plugins passed in ``remove_plugins`` stay excluded even when they are registered after the subset caller is created (`#840 <https://github.com/pytest-dev/pluggy/issues/840>`_).
